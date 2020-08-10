@@ -16,15 +16,15 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-  CORS(app)
+  # CORS(app)
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
-  @app.after_request()
-  def after_request(response):
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTION,HEAD')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+  # @app.after_request
+  # def after_request(response):
+  #   response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTION,HEAD')
+  #   response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
 
   def format_categories(categories):
     return { category.id: category.type for category in categories }
@@ -70,6 +70,7 @@ def create_app(test_config=None):
     categories = Category.query.all()
 
     return jsonify({
+      'success': True,
       'questions': [question.format() for question in questions_in_page],
       'total_questions': total_questions,
       'categories': format_categories(categories),
@@ -100,7 +101,8 @@ def create_app(test_config=None):
       db.session.close()
     
     return jsonify({
-      'success': True
+      'success': True,
+      'question': question.format()
     })
 
   '''
@@ -116,14 +118,14 @@ def create_app(test_config=None):
   @app.route('/questions', methods=['POST'])
   def create_question():
     body_params = request.get_json()
-    question = body_params['question']
-    answer = body_params['answer']
-    category = body_params['category']
-    difficulty = body_params['difficulty']
+    question = body_params.get('question', None)
+    answer = body_params.get('answer', None)
+    category = body_params.get('category', None)
+    difficulty = body_params.get('difficulty', None)
 
     if not question or not answer or not category or not difficulty:
       abort(400)
-    
+
     selected_category = Category.query.get(category)
 
     if not selected_category:
@@ -144,7 +146,7 @@ def create_app(test_config=None):
     return jsonify({
       'success': True,
       'question': formated_question
-    })
+    }), 201
 
 
   '''
@@ -159,7 +161,7 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/search', methods=['POST'])
   def search_questions():
-    search_term = request.get_json()['searchTerm']
+    search_term = request.get_json().get('searchTerm', None)
 
     if not search_term:
       abort(400)
@@ -189,6 +191,7 @@ def create_app(test_config=None):
     category_questions = Question.query.filter_by(category=category_id).all()
 
     return jsonify({
+      'success': True,
       'questions': [question.format() for question in category_questions],
       'total_questions': len(category_questions),
       'current_category': category.format()
@@ -253,7 +256,7 @@ def create_app(test_config=None):
       'success': False,
       'error': 422,
       'message': 'unprocessible entity'
-    })
+    }), 422
   
   @app.errorhandler(500)
   def internal_server_error(_error):
@@ -261,7 +264,7 @@ def create_app(test_config=None):
       'success': False,
       'error': 500,
       'message': 'internal server error'
-    })
+    }), 500
 
   return app
 

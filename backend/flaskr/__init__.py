@@ -172,6 +172,7 @@ def create_app(test_config=None):
     
     return jsonify({
       'success': True,
+      'total_questions': len(matched_questions),
       'questions': [question.format() for question in matched_questions]
     })
 
